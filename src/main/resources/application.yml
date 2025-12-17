@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=test
+    username: alvin
+    password: myjava123
+    driver-class-name: org.postgresql.Driver
+
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+security:
+  jwt:
+    secret: thisismysecretkeythatnoonecanguesswhatisityesnoone
+    access-token-duration: 900
+    refresh-token-duration: 604800
