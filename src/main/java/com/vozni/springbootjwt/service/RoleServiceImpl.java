@@ -2,6 +2,7 @@ package com.vozni.springbootjwt.service;
 
 import com.vozni.springbootjwt.model.Role;
 import com.vozni.springbootjwt.repository.RoleDA;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,5 +18,10 @@ public class RoleServiceImpl implements RoleService{
 
     public List<Role> getAll(){
         return roleDA.findAll();
+    }
+
+    @Override
+    public Role get(String name) {
+        return roleDA.findByName(name).orElseThrow(()->new EntityNotFoundException("Role not found"));
     }
 }
