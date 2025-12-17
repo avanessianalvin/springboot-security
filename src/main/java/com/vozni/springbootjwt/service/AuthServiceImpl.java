@@ -4,8 +4,10 @@ import com.vozni.springbootjwt.dto.TokenPair;
 import com.vozni.springbootjwt.model.TokenEntity;
 import com.vozni.springbootjwt.model.UserEntity;
 import com.vozni.springbootjwt.repository.TokenDA;
+import com.vozni.springbootjwt.repository.UserDA;
 import com.vozni.springbootjwt.security.JwtUtil;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -14,11 +16,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AuthServiceImpl {
     private final JwtUtil jwtUtil;
-    private final UserService userService;
+    //private final UserService userService;
+    private final UserDA userDA;
     private final TokenDA tokenDA;
 
     public TokenPair getTokenPairByUsername(String username){
-        UserEntity user = userService.get(username);
+        UserEntity user = getUserEntity(username);
         String deviceId = UUID.randomUUID().toString();
         String accessToken = jwtUtil.getAccessToken(user);
         TokenEntity refreshToken = jwtUtil.getRefreshToken(username,deviceId);
@@ -28,7 +31,7 @@ public class AuthServiceImpl {
 
     public TokenPair getTokenPairByRefreshToken(String token){
         String[] usernameAndDeviceId = jwtUtil.getUsernameAndDeviceId(token);
-        UserEntity user = userService.get(usernameAndDeviceId[0]);
+        UserEntity user = getUserEntity(usernameAndDeviceId[0]);
         String accessToken = jwtUtil.getAccessToken(user);
         TokenEntity refreshToken = jwtUtil.getRefreshToken(usernameAndDeviceId[0], usernameAndDeviceId[1]);
         persistToken(refreshToken);
@@ -45,6 +48,10 @@ public class AuthServiceImpl {
     }
     public UserEntity getUser(String token) {
         String username = jwtUtil.getUsername(token);
-        return userService.get(username);
+        return getUserEntity(username);
+    }
+
+    private UserEntity getUserEntity(String username){
+        return userDA.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("username not found"));
     }
 }

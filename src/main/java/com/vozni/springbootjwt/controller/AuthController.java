@@ -15,6 +15,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,26 +38,20 @@ import java.util.List;
     private final AuthenticationManager authenticationManager;
 
     private final UserService userService;
-    private final RoleService roleService;
-
-    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDto registerDto){
-        Role userRole = roleService.get("USER");
-        String encodedPassword = passwordEncoder.encode(registerDto.password());
-        UserEntity user = new UserEntity(0L, registerDto.username(), encodedPassword, List.of(userRole));
-        userService.save(user);
+
+        UserEntity user = userService.save(registerDto);
         return ResponseEntity.ok(user);
     }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto, HttpServletResponse response){
-        //UserEntity user = new UserEntity(null, loginDto.username(), loginDto.password(), new ArrayList<>());
         UserEntity userEntity = userService.get(loginDto.username());
 
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userEntity.getUsername(),
-                        userEntity.getPassword(),
+                new UsernamePasswordAuthenticationToken(loginDto.username(),
+                        loginDto.password(),
                         UserUtils.getGrantedAuthorities(userEntity));
         authenticationManager.authenticate(authenticationToken);
         TokenPair tokenPair = authService.getTokenPairByUsername(loginDto.username());
