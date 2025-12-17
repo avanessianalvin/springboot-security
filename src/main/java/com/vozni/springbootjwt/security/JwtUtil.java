@@ -4,9 +4,11 @@ import com.vozni.springbootjwt.model.Role;
 import com.vozni.springbootjwt.model.TokenEntity;
 import com.vozni.springbootjwt.model.UserEntity;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -69,27 +71,17 @@ public class JwtUtil {
 
 
     public String getUsername(String token){
-        System.out.println(token);
-        try {
-            Claims claims = Jwts.parser().verifyWith(secretKey).build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-            return claims.getSubject();
-
-        }catch (Exception e) {
-            throw new JwtException("invalid or expired token");
-        }
+            return getClaims(token).getSubject();
     }
 
     public String[] getUsernameAndDeviceId(String token){
-        try {
-            Claims claims = Jwts.parser().verifyWith(secretKey).build()
+            Claims claims = getClaims(token);
+            return new String[]{claims.getSubject(),claims.get("deviceId").toString()};
+    }
+
+    public Claims getClaims(String token){
+            return Jwts.parser().verifyWith(secretKey).build()
                     .parseSignedClaims(token)
                     .getPayload();
-            return new String[]{claims.getSubject(),claims.get("deviceId").toString()};
-
-        }catch (Exception e) {
-            throw new JwtException("invalid or expired token");
-        }
     }
 }
