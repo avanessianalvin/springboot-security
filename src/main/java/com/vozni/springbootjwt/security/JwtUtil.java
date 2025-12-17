@@ -1,6 +1,7 @@
 package com.vozni.springbootjwt.security;
 
 import com.vozni.springbootjwt.model.Role;
+import com.vozni.springbootjwt.model.TokenEntity;
 import com.vozni.springbootjwt.model.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -43,38 +44,49 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String getRefreshToken(String username){
-        String deviceId = UUID.randomUUID().toString();
-        return getRefreshToken(username,deviceId);
-    }
 
-    public String getRotateRefreshToken(String refreshToken){
-        Claims claims = Jwts.parser().verifyWith(secretKey).build()
-                .parseSignedClaims(refreshToken)
-                .getPayload();
-        String username = claims.getSubject();
-        String deviceId = (String) claims.get("deviceId");
-        return getRefreshToken(claims.getSubject(),deviceId);
-    }
-    public String getRefreshToken(String username, String deviceId){
+    public TokenEntity getRefreshToken(String username, String deviceId){
         Instant instant = Instant.now();
-        return Jwts.builder()
+        Date issueDate = Date.from(instant);
+        Date expireDate = Date.from(instant.plusSeconds(refreshTokenDuration));
+        String token =  Jwts.builder()
                 .signWith(secretKey)
                 .subject(username)
-                .issuedAt(Date.from(instant))
+                .issuedAt(issueDate)
                 .claims(
                         Map.of("deviceId",deviceId)
                 )
-                .expiration(Date.from(instant.plusSeconds(refreshTokenDuration)))
+                .expiration(expireDate)
                 .compact();
+
+        return new TokenEntity()
+                .setToken(token)
+                .setUsername(username)
+                .setIssueDate(issueDate)
+                .setExpireDate(expireDate)
+                .setDeviceId(deviceId);
     }
 
+
     public String getUsername(String token){
+        System.out.println(token);
         try {
             Claims claims = Jwts.parser().verifyWith(secretKey).build()
                     .parseSignedClaims(token)
                     .getPayload();
             return claims.getSubject();
+
+        }catch (Exception e) {
+            throw new JwtException("invalid or expired token");
+        }
+    }
+
+    public String[] getUsernameAndDeviceId(String token){
+        try {
+            Claims claims = Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return new String[]{claims.getSubject(),claims.get("deviceId").toString()};
 
         }catch (Exception e) {
             throw new JwtException("invalid or expired token");

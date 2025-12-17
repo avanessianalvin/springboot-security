@@ -2,24 +2,28 @@ package com.vozni.springbootjwt.model;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Date;
 import java.util.UUID;
 
 @Entity
-@Table
+@Table(name = "token")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RefreshToken {
+@Accessors(chain = true)
+@Data
+public class TokenEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     long id;
 
     String token;
     String username;
-    UUID deviceId;
+    String deviceId;
     Date issueDate;
     Date expireDate;
-    long nextId;
+    Long replacedBy;
 
 }

@@ -1,6 +1,6 @@
 package com.vozni.springbootjwt.util;
 
-import com.vozni.springbootjwt.controller.dto.UserDto;
+import com.vozni.springbootjwt.dto.UserDto;
 import com.vozni.springbootjwt.model.Role;
 import com.vozni.springbootjwt.model.UserEntity;
 import org.springframework.security.core.GrantedAuthority;

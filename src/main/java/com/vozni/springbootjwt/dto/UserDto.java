@@ -1,4 +1,4 @@
-package com.vozni.springbootjwt.controller.dto;
+package com.vozni.springbootjwt.dto;
 
 import java.util.List;
 

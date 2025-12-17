@@ -1,5 +1,6 @@
 package com.vozni.springbootjwt.controller;
 
+import com.vozni.springbootjwt.dto.TokenPair;
 import com.vozni.springbootjwt.security.JwtProperties;
 import com.vozni.springbootjwt.service.AuthServiceImpl;
 import io.jsonwebtoken.JwtException;
@@ -17,36 +18,45 @@ import org.springframework.web.bind.annotation.*;
     private final AuthServiceImpl authService;
 
     private final JwtProperties jwtProperties;
+    private final static String REFRESH_TOKEN = "refresh_token";
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto, HttpServletResponse response){
         //UserEntity user = new UserEntity(null, loginDto.username(), loginDto.password(), new ArrayList<>());
-        String token = authService.getRefreshToken(loginDto.username());
+        TokenPair tokenPair = authService.getTokenPairByUsername(loginDto.username());
 
-        Cookie cookie = new Cookie("refresh_token",token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setSecure(true);
-        cookie.setMaxAge(jwtProperties.getRefreshTokenDuration());
-
-        response.addCookie(cookie);
-        return ResponseEntity.ok(token);
+        Cookie refreshTokenCookie = getRefreshTokenCookie(tokenPair.refreshToken());
+        response.addCookie(refreshTokenCookie);
+        return ResponseEntity.ok(tokenPair.accessToken());
     }
 
     @GetMapping("/token")
-    public ResponseEntity<?> accessToken(@CookieValue(value = "refresh_token", required = false) Cookie cookie){
+    public ResponseEntity<?> accessToken(
+            @CookieValue(value = REFRESH_TOKEN, required = false) Cookie cookie,
+            HttpServletResponse response){
         // check cookie and token validity
-        if (cookie==null || cookie.getValue().isBlank())
+        if (cookie==null || cookie.getValue().isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         try {
-            String accessToken = authService.getAccessToken(cookie.getValue());
-            return ResponseEntity.ok(accessToken);
+            TokenPair tokenPair = authService.getTokenPairByRefreshToken(cookie.getValue());
+            Cookie refreshTokenCookie = getRefreshTokenCookie(tokenPair.refreshToken());
+            response.addCookie(refreshTokenCookie);
+            return ResponseEntity.ok(tokenPair.accessToken());
         }catch (JwtException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
 
+    private Cookie getRefreshTokenCookie(String token){
+        Cookie cookie = new Cookie(REFRESH_TOKEN, token);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setSecure(true);
+        cookie.setMaxAge(jwtProperties.getRefreshTokenDuration());
+        return cookie;
+    }
 
 }
 
