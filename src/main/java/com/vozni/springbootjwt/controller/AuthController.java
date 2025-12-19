@@ -19,6 +19,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -53,9 +55,9 @@ import java.util.List;
                 new UsernamePasswordAuthenticationToken(loginDto.username(),
                         loginDto.password(),
                         UserUtils.getGrantedAuthorities(userEntity));
-        authenticationManager.authenticate(authenticationToken);
+        Authentication authenticate = authenticationManager.authenticate(authenticationToken);
+        //SecurityContextHolder.getContext().setAuthentication(authenticate);
         TokenPair tokenPair = authService.getTokenPairByUsername(loginDto.username());
-
         Cookie refreshTokenCookie = getRefreshTokenCookie(tokenPair.refreshToken());
         response.addCookie(refreshTokenCookie);
         return ResponseEntity.ok(tokenPair.accessToken());

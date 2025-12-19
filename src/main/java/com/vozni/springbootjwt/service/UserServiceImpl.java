@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService{
         }
         Role userRole = roleService.get("USER");
         String encodedPassword = passwordEncoder.encode(registerDto.password());
-        UserEntity user = new UserEntity(0L, registerDto.username(), encodedPassword, List.of(userRole));
+        UserEntity user = new UserEntity(null, registerDto.username(), encodedPassword, List.of(userRole));
 
         user = userDA.save(user);
         return user;

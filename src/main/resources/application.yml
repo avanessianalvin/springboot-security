@@ -15,3 +15,8 @@ security:
     secret: thisismysecretkeythatnoonecanguesswhatisityesnoone
     access-token-duration: 900
     refresh-token-duration: 604800
+
+
+#logging:
+#  level:
+#    org.springframework.security: TRACE # see all logs,
